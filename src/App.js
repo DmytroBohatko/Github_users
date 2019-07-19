@@ -2,11 +2,42 @@ import React, {Component} from 'react';
 import './App.css';
 import axios from 'axios'
 
+const userList = [
+    {login: "mojombo", id: 1},
+    {login: "pjhyett", id: 3},
+    {login: "wycats", id: 4},
+    {login: "ezmobius", id: 5},
+    {login: "ivey", id: 6},
+    {login: "evanphx", id: 7},
+    {login: "vanpelt", id: 17},
+    {login: "wayneeseguin", id: 18},
+    {login: "brynary", id: 19},
+    {login: "kevinclark", id: 20},
+    {login: "technoweenie", id: 21},
+    {login: "macournoyer", id: 22},
+    {login: "takeo", id: 23},
+    {login: "caged", id: 25},
+    {login: "topfunky", id: 26},
+    {login: "anotherjesse", id: 27},
+    {login: "roland", id: 28},
+    {login: "lukas", id: 29},
+    {login: "fanvsfan", id: 30},
+    {login: "tomtt", id: 31},
+    {login: "railsjitsu", id: 32},
+    {login: "nitay", id: 34},
+    {login: "kevwil", id: 35},
+    {login: "KirinDave", id: 36},
+    {login: "jamesgolick", id: 37},
+    {login: "atmos", id: 38},
+    {login: "errfree", id: 44},
+    {login: "mojodna", id: 45},
+    {login: "bmizerany", id: 46}
+];
+
 class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: [],
             value: '',
             picture: '',
             id: 0,
@@ -14,44 +45,52 @@ class App extends Component {
             companyName: [],
             display: [],
         };
-        this.handleClick = this.handleClick.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-        this.handleAddCart = this.handleAddCart.bind(this)
     }
 
 
-    handleClick(event) {
+    handleClick = (event) => {
         event.preventDefault();
         let name = '';
         let arr = [];
         //GET ALL USERS
-        axios.get('https://api.github.com/users?access_token=07639ee7cae249ce87f3811bb9050cd01e8bb320')
+        axios.get('https://api.github.com/users')
             .then(result => {
+                console.log(result);
                 result.data.map(res => {
                     // FIND MATCHES
                     if (res.login.toLowerCase() === this.state.value.toLowerCase()) {
                         // GET USER PROFILE
-                        axios.get(res.url + "?access_token=07639ee7cae249ce87f3811bb9050cd01e8bb320")
+                        axios.get(res.url)
                             .then(user => {
                                 // GET NAME
                                 name = user.data.name;
                                 // GET ALL ORGANIZATIONS
-                                axios.get(user.data.organizations_url + "?access_token=07639ee7cae249ce87f3811bb9050cd01e8bb320")
+                                axios.get(user.data.organizations_url)
                                     .then(organizations => {
+                                        console.log(organizations.data.length);
+                                        if (organizations.data.length === 0){
+                                            this.setState({
+                                                companyName: [],
+                                                nameUser: name,
+                                                picture: user.data.avatar_url,
+                                                id: (this.state.id + 1)
+                                            });
+                                            this.handleAddCart()
+                                        }
                                         organizations.data.map(data => {
                                             //GET ORGANIZATION
-                                            axios.get(data.url + "?access_token=07639ee7cae249ce87f3811bb9050cd01e8bb320")
+                                            axios.get(data.url)
                                                 .then(url => {
                                                     if (url.data.name === undefined) {
                                                         arr.push(url.data.login.charAt(0).toUpperCase() + url.data.login.slice(1))
                                                     } else {
                                                         arr.push(url.data.name);
                                                     }
-                                                    if (arr.length === organizations.data.length){
+                                                    if (arr.length === organizations.data.length) {
                                                         this.setState({
                                                             companyName: arr,
-                                                            nameUser:name,
-                                                            picture:user.data.avatar_url,
+                                                            nameUser: name,
+                                                            picture: user.data.avatar_url,
                                                             id: (this.state.id + 1)
                                                         });
                                                         this.handleAddCart()
@@ -64,29 +103,37 @@ class App extends Component {
                     }
                 })
             })
-    }
+    };
 
-    handleChange(e) {
+    handleChange = (e) => {
         this.setState({value: e.target.value})
-    }
+    };
 
-    handleAddCart() {
+    handleAddCart = () => {
         this.setState({
-            display : [...this.state.display,
+            display: [...this.state.display,
                 <Display
-                key={this.state.id}
-                picture={this.state.picture}
-                name={this.state.nameUser}
-                companyName={this.state.companyName}
-            />
+                    key={this.state.id}
+                    picture={this.state.picture}
+                    name={this.state.nameUser}
+                    companyName={this.state.companyName}
+                />
             ]
         });
-    }
+    };
 
     render() {
         return (
             <div>
-                <form onSubmit={this.handleClick}>
+                <div style={{
+                    display: "grid",
+                    float: "left"
+                }}>
+                    {userList.map(user => {
+                        return <span key={user.id + 100}>{user.login}</span>
+                    })}
+                </div>
+                <form onSubmit={this.handleClick} style={{display: "inline-block"}}>
                     <input type="text" value={this.state.value} onChange={this.handleChange}
                            placeholder="Enter user login"/>
                     <input type="submit"
@@ -95,8 +142,8 @@ class App extends Component {
                 </form>
                 {
                     this.state.display.map(user => {
-                        return user
-                    }
+                            return user
+                        }
                     )
                 }
             </div>
